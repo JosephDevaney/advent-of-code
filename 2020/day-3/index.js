@@ -1,9 +1,7 @@
 const fs = require('fs');
 const { join } = require('path');
 
-const X_OFFSET = 3;
 const TREE = '#';
-const OPEN = '.';
 
 const testData = [
   '..##.......',
@@ -33,11 +31,12 @@ const data = fs.readFileSync(join(__dirname, 'input.txt'))
   .split('\n');
 
 const countTrees = ({ right, down, forest = data }) => forest.reduce((count, line, index) => {
-  if (index % down !== 0) {
-    return count;
+  if (index % down === 0) {
+    const indexToCheck = (index / down * right) % (line.length);
+    if (line[indexToCheck] === TREE) {
+      return count + 1;
+    }
   }
-  const indexToCheck = (index / down * right) % (line.length);
-  if (line[indexToCheck] === TREE) return count + 1;
 
   return count;
 }, 0);
