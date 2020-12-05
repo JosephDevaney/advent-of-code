@@ -14,7 +14,7 @@ const measurementsValues = {
 };
 
 const validations = {
-  byr: (f) => validateNumber(f, 1920, 2002)
+  byr: (f) => validateNumber(f, 1920, 2002),
   iyr: (f) => validateNumber(f, 2010, 2020),
   eyr: (f) => validateNumber(f, 2020, 2030),
   hcl: (f) => /#[0-9"a-f]{6}/.test(f),
