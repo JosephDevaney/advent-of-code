@@ -20,17 +20,23 @@ const testData = [
 
 const MY_BAG = 'shiny gold';
 
-const rulePattern = /(?<count>\d*)\s?(?<color>[a-zA-Z\s]*) bag(s?)/;
+const rulePattern = /(?<count>\d?)\s?(?<color>[a-zA-Z\s]*) bag(s?)/;
 
 const parseRule = (rule) => {
   const [outer, inner] = rule.split(' contain ');
 
-  // console.log(inner);
-  // console.log(outer);
   const { groups: outerBag } = rulePattern.exec(outer);
   const innerBags = inner.split(',').map((bag) => rulePattern.exec(bag).groups);
 
   return { innerBags, outerBag };
+};
+const parseRule2 = (rule) => {
+  const [outer, inner] = rule.split(' contain ');
+
+  const { groups: outerBag } = rulePattern.exec(outer);
+  const innerBags = inner.split(',').map((bag) => rulePattern.exec(bag).groups);
+
+  return { [outerBag.color]: innerBags };
 };
 
 const buildOuterBagLookup = (rules) => {
@@ -62,6 +68,28 @@ const countOuterBags = (starterBag = MY_BAG, lookup) => {
   return bags.size;
 };
 
+const countInnerBags = (bagMap, starterBag = MY_BAG) => {
+  let bagsToCount = bagMap[starterBag] || [];
+
+  let count = 0;
+
+  while (bagsToCount.length) {
+    const bag = bagsToCount.shift();
+    if (bag) {
+      count = count + Number(bag.count) || 0;
+    }
+
+    if (bag.color !== 'no other') {
+      const { [bag.color]: innerBags = [] } = bagMap;
+      for (let i = 0; i < Number(bag.count); i++){
+        bagsToCount.push(...innerBags);
+      }
+    }
+  }
+
+  return count;
+};
+
 const main1 = () => {
   const lookup = buildOuterBagLookup(data.map(parseRule));
 
@@ -69,7 +97,12 @@ const main1 = () => {
 };
 
 const main2 = () => {
-  // return parseRule('dotted black bags contain no other bags.');
+  const bagMap = data.reduce((acc, rule) => ({
+    ...acc,
+    ...parseRule2(rule),
+  }), {});
+
+  return countInnerBags(bagMap, MY_BAG);
 };
 
 console.log(main1());
