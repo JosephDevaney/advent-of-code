@@ -16,9 +16,9 @@ const calcGroupConsensus = (group) => {
     .reduce((arr, person = '') => arr.concat(Array.from(person)), [])
     .reduce((counts, ans) => ({ ...counts, [ans]: counts[ans] ? counts[ans] + 1 : 1 }), {});
 
-  return new Set(Object.keys(Object.entries(groupCountsObj)
-    .filter(([,count]) => count === groupArr.length)
-  )).size;
+  return Object.values(groupCountsObj)
+    .filter((count) => count === groupArr.length)
+    .length;
 };
 
 const main1 = () => {
