@@ -54,14 +54,32 @@ const findIncorrect = (data, preambleLength) => {
   }
 }
 
-const main1 = (data, preambleLength) => {
-  console.log(data.slice(0, preambleLength));
+const findWeakness = (data, weakness) => {
+  for (let i = 0; i < data.length; i++) {
+    let j = i + 1;
+    while (true) {
+      const cont = data.slice(i, j);
+      const sum = cont.reduce((total, num) => total + num, 0);
+      if (sum === weakness) {
+        return cont.sort();
+      } else if (sum > weakness) {
+        break;
+      }
+      j++;
+    }
+  }
+}
 
+const main1 = (data, preambleLength) => {
   return findIncorrect(data, preambleLength);
 };
 
-const main2 = () => {
+const main2 = (data, preambleLength) => {
+  const weakness = findIncorrect(data, preambleLength);
+  const weakNessArr = findWeakness(data, weakness);
+
+  return weakNessArr[0] + weakNessArr.slice(-1)[0];
 };
 
 console.log(main1(encodedData, 25));
-console.log(main2());
+console.log(main2(encodedData, 25));
