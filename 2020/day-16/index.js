@@ -36,11 +36,15 @@ const getDataGroups = (data) => {
   }, { rules: [], myTicket: [], tickets: [] });
 };
 
-const RULE_PATTERN =  /.*:\s(\d*-\d*)\sor\s(\d*-\d*)/;
+const RULE_PATTERN =  /(.*):\s(\d*-\d*)\sor\s(\d*-\d*)/;
 const buildRulesRanges = (rules) => {
   return rules.reduce((acc, rule) => {
-    const [, r1, r2] = rule.match(RULE_PATTERN);
-    return [...acc, r1.split('-').map(Number), r2.split('-').map(Number)];
+    const [, name, r1, r2] = rule.match(RULE_PATTERN);
+
+    return {
+      ...acc,
+      [name]: [r1.split('-').map(Number), r2.split('-').map(Number)],
+    };
   }, []);
 };
 
@@ -49,7 +53,7 @@ const checkRangeInc = (x, min, max) => {
 };
 
 const main1 = ({ rules, tickets }) => {
-  const rulesValues = buildRulesRanges(rules);
+  const rulesValues = Object.values(buildRulesRanges(rules)).flatMap(a => a);
 
   return tickets.reduce((ticketErrorRate, ticket) => {
     const invalidFields = ticket
