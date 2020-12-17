@@ -20,6 +20,19 @@ const testData = [
   '55,2,20',
   '38,6,12',
 ];
+const testDataP2 = [
+  'class: 0-1 or 4-19',
+  'row: 0-5 or 8-19',
+  'seat: 0-13 or 16-19',
+  '',
+  'your ticket:',
+  '11,12,13',
+  '',
+  'nearby tickets:',
+  '3,9,18',
+  '15,1,5',
+  '5,14,9',
+];
 
 const getDataGroups = (data) => {
   let curGroup = 'rules';
@@ -55,10 +68,14 @@ const checkRangeInc = (x, min, max) => {
 const main1 = ({ rules, tickets }) => {
   const rulesValues = Object.values(buildRulesRanges(rules)).flatMap(a => a);
 
-  return tickets.reduce((ticketErrorRate, ticket) => {
+  return tickets
+    .map((ticket) => {
+      return ticket
+        .split(',')
+        .map(Number);
+    })
+    .reduce((ticketErrorRate, ticket) => {
     const invalidFields = ticket
-      .split(',')
-      .map(Number)
       .filter((field) => rulesValues.every(([min, max]) => !checkRangeInc(field, min, max)));
 
     return invalidFields.reduce((count, f) => count + f, ticketErrorRate);
@@ -66,4 +83,64 @@ const main1 = ({ rules, tickets }) => {
 
 };
 
+const main2 = ({ rules, myTicket, tickets }) => {
+  const rulesObj = buildRulesRanges(rules);
+  const rulesValues = Object.values(rulesObj).flatMap(a => a);
+
+  const validTickets = tickets
+    .map((ticket) => ticket
+      .split(',')
+      .map(Number)
+    )
+    .filter((ticket) => {
+      return ticket
+        .every((field) => rulesValues.some(([min, max]) => checkRangeInc(field, min, max)));
+    });
+
+  const flatFields = validTickets.reduce((acc, ticket) => {
+    let update = [...acc];
+
+    ticket.forEach((field, idx) => {
+      const fieldAcc = acc[idx] || [];
+      update[idx] = [...fieldAcc, field];
+    });
+    return update;
+
+  }, []);
+
+  // It's all gone to hell now!
+  let aksjh = flatFields.map((fields) => {
+    return Object.entries(rulesObj)
+      .filter(([n, rule]) => fields.every((field) => rule.some(([min, max]) => checkRangeInc(field, min, max))))
+      .map(([name]) => name)
+  });
+
+  let possibleRules = [...aksjh];
+  for (let i = 0; i < possibleRules.length; i++) {
+    const x = aksjh.findIndex((pr) => pr.length === i + 1);
+
+    possibleRules = possibleRules.map((pr, prInd) => {
+      if (prInd === x) {
+        return pr;
+      } else {
+        const xa = pr.filter((rule) => possibleRules[x][0] !== rule);
+        console.log(xa);
+        return xa;
+      }
+    })
+
+  }
+
+  const myTicketArr = myTicket[0].split(',').map(Number);
+  return possibleRules
+    .flatMap(a => a)
+    .reduce((mult, rule, idx) => {
+      if (rule.startsWith('departure')) {
+        return mult * myTicketArr[idx];
+      }
+      return mult;
+    }, 1);
+};
+
 console.log(main1(getDataGroups(inputData)));
+console.log(main2(getDataGroups(inputData)));
