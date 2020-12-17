@@ -86,8 +86,9 @@ const main1 = ({ rules, tickets }) => {
 const main2 = ({ rules, myTicket, tickets }) => {
   const rulesObj = buildRulesRanges(rules);
   const rulesValues = Object.values(rulesObj).flatMap(a => a);
+  const myTicketArr = myTicket[0].split(',').map(Number);
 
-  const validTickets = tickets
+  const possibleRules = tickets
     .map((ticket) => ticket
       .split(',')
       .map(Number)
@@ -95,44 +96,38 @@ const main2 = ({ rules, myTicket, tickets }) => {
     .filter((ticket) => {
       return ticket
         .every((field) => rulesValues.some(([min, max]) => checkRangeInc(field, min, max)));
+    })
+    .reduce((acc, ticket) => {
+      let update = [...acc];
+
+      ticket.forEach((field, idx) => {
+        const fieldAcc = acc[idx] || [];
+        update[idx] = [...fieldAcc, field];
+      });
+      return update;
+
+    }, [])
+    .map((fields) => {
+      return Object.entries(rulesObj)
+        .filter(([, rule]) => fields.every((field) => rule.some(([min, max]) => checkRangeInc(field, min, max))))
+        .map(([name]) => name);
     });
 
-  const flatFields = validTickets.reduce((acc, ticket) => {
-    let update = [...acc];
+  let deDupedRules = [...possibleRules];
+  for (let i = 0; i < deDupedRules.length; i++) {
+    const x = possibleRules.findIndex((pr) => pr.length === i + 1);
 
-    ticket.forEach((field, idx) => {
-      const fieldAcc = acc[idx] || [];
-      update[idx] = [...fieldAcc, field];
-    });
-    return update;
-
-  }, []);
-
-  // It's all gone to hell now!
-  let aksjh = flatFields.map((fields) => {
-    return Object.entries(rulesObj)
-      .filter(([n, rule]) => fields.every((field) => rule.some(([min, max]) => checkRangeInc(field, min, max))))
-      .map(([name]) => name)
-  });
-
-  let possibleRules = [...aksjh];
-  for (let i = 0; i < possibleRules.length; i++) {
-    const x = aksjh.findIndex((pr) => pr.length === i + 1);
-
-    possibleRules = possibleRules.map((pr, prInd) => {
+    deDupedRules = deDupedRules.map((pr, prInd) => {
       if (prInd === x) {
         return pr;
       } else {
-        const xa = pr.filter((rule) => possibleRules[x][0] !== rule);
-        console.log(xa);
-        return xa;
+        return pr.filter((rule) => deDupedRules[x][0] !== rule);
       }
     })
 
   }
 
-  const myTicketArr = myTicket[0].split(',').map(Number);
-  return possibleRules
+  return deDupedRules
     .flatMap(a => a)
     .reduce((mult, rule, idx) => {
       if (rule.startsWith('departure')) {
